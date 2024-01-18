@@ -1,0 +1,94 @@
+name: "Run Test for Kotlin Dependencies"
+description: "Run Snyk Checks for Kotlin"
+inputs:
+  report-branch:
+    description: Branch name to monitor. Results will be uploaded to snyk after push to this branch
+    required: false
+    type: string
+    default: main
+  ignore-errors:
+    description: will finish with success even if snyk return an error. Could be used in case of emergencies to avoid blocking the pipelines
+    required: false
+    type: boolean
+    default: false
+  snyk-token:
+    description: 'Snyk Auth token'
+    type: string
+    required: true
+runs: 
+      using: 'composite'
+      steps:
+        - name: Install curl/gh/snyk-delta/
+          shell: bash
+          env:
+            GH_TOKEN: ${{ github.token }}
+          run: |
+            type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
+            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+            && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+            && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+            && sudo apt update \
+            && sudo apt install gh -y
+        - name: Install snyk-delta
+          shell: bash
+          env:
+            GH_TOKEN: ${{ github.token }}
+          run: |
+            type -p ./snyk-delta >/dev/null || gh release download -R 'snyk-tech-services/snyk-delta' --pattern 'snyk-delta-linux*' && sha256sum -c snyk-delta-linux.sha256 \
+            && mv snyk-delta-linux snyk-delta && chmod +x snyk-delta && ./snyk-delta --version \
+
+     
+        - uses: actions/checkout@master
+        - name: Run Snyk to check for gradle vulnerabilities
+          uses: snyk/actions/gradle@master
+          env:
+            SNYK_TOKEN: ${{ inputs.snyk-token }}
+          continue-on-error: true
+      
+        - uses: snyk/actions/gradle@master
+          env:
+            SNYK_TOKEN: ${{ inputs.snyk-token }}
+          with:
+            command: monitor
+          continue-on-error: ${{ inputs.ignore-errors && true || false}}
+      
+
+        - name: Check if snyk succeeded
+          if: github.event_name == 'pull_request' && !inputs.ignore-errors && steps.kotlin_snyk_scan.outputs.exitcode != 0 && steps.kotlin_snyk_scan.outputs.exitcode != 1
+          shell: bash
+          run: echo "Snyk scan failed. Please check the previous stage for details" && exit 1
+
+        - name: Process snyk results
+          id: snyk_filter_new_issues
+          if: github.event_name == 'pull_request'
+          shell: bash
+          run: |
+            set +e
+            echo '```diff' > new_vulns_summary.txt
+            cat snyk_results.json | ./snyk-delta >> new_vulns_summary.txt 
+            echo "exitcode=$?" >> $GITHUB_OUTPUT
+            sed -i -e '/Low/,/^$/ s/^/# /' -e '/Low/,/^$/ !{
+            /High/s/^/- /
+            /Critical/s/^/- /
+            /Fixed/s/^/+ /
+            /Fixable/s/^/+ /
+            /Via/s/^/! /
+            }' new_vulns_summary.txt
+            echo '```' >> new_vulns_summary.txt
+            cat new_vulns_summary.txt
+          env:
+            SNYK_TOKEN: ${{ inputs.snyk-token }}
+          continue-on-error: true
+
+        - name: Check if snyk-delta succeeded
+          if: github.event_name == 'pull_request' && !inputs.ignore-errors && steps.snyk_filter_new_issues.outputs.exitcode != 0 && steps.snyk_filter_new_issues.outputs.exitcode != 1
+          shell: bash
+          run: echo "Snyk-delta failed to filter results. Please check the previous stage for details" && exit 1
+
+        - name: Add PR Comment with results
+          if: github.event_name == 'pull_request' && steps.snyk_filter_new_issues.outputs.exitcode == 0 || steps.snyk_filter_new_issues.outputs.exitcode == 1
+          uses: thollander/actions-comment-pull-request@9d67388b9a94966eb262e68d9a3b368497990b77
+          with:
+            filePath: new_vulns_summary.txt
+            comment_tag: snyk_results
+
