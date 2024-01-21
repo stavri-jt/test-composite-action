@@ -44,7 +44,6 @@ runs:
           env:
             SNYK_TOKEN: ${{ inputs.snyk-token }}
           with:
-            command: test
             json: true
           continue-on-error: true
       
