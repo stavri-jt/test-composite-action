@@ -44,6 +44,7 @@ runs:
           env:
             SNYK_TOKEN: ${{ inputs.snyk-token }}
           with:
+            args: --json-file-output=snyk_kotlin_results.json
             json: true
           continue-on-error: true
       
@@ -67,7 +68,7 @@ runs:
           run: |
             set +e
             echo '```diff' > new_vulns_summary.txt
-            cat snyk_results.json | ./snyk-delta >> new_vulns_summary.txt 
+            cat snyk_kotlin_results.json | ./snyk-delta >> new_kotlin_vulns_summary.txt 
             echo "exitcode=$?" >> $GITHUB_OUTPUT
             sed -i -e '/Low/,/^$/ s/^/# /' -e '/Low/,/^$/ !{
             /High/s/^/- /
@@ -75,8 +76,8 @@ runs:
             /Fixed/s/^/+ /
             /Fixable/s/^/+ /
             /Via/s/^/! /
-            }' new_vulns_summary.txt
-            echo '```' >> new_vulns_summary.txt
+            }' new_kotlin_vulns_summary.txt
+            echo '```' >> new_kotlin_vulns_summary.txt
             cat new_vulns_summary.txt
           env:
             SNYK_TOKEN: ${{ inputs.snyk-token }}
@@ -91,6 +92,6 @@ runs:
           if: github.event_name == 'pull_request' && steps.snyk_filter_new_issues.outputs.exitcode == 0 || steps.snyk_filter_new_issues.outputs.exitcode == 1
           uses: thollander/actions-comment-pull-request@v2.4.3
           with:
-            filePath: new_vulns_summary.txt
-            comment_tag: snyk_results
+            filePath: new_kotlin_vulns_summary.txt
+            comment_tag: snyk_kotlin_results
 
