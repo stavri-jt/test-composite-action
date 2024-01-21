@@ -43,6 +43,7 @@ runs:
           uses: snyk/actions/gradle@b98d498629f1c368650224d6d212bf7dfa89e4bf
           env:
             SNYK_TOKEN: ${{ inputs.snyk-token }}
+          json: true
           continue-on-error: true
       
         - uses: snyk/actions/gradle@b98d498629f1c368650224d6d212bf7dfa89e4bf
