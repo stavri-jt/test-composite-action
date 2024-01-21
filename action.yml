@@ -41,10 +41,11 @@ runs:
         - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 
         - name: Run Snyk to check for gradle vulnerabilities
           uses: snyk/actions/gradle@b98d498629f1c368650224d6d212bf7dfa89e4bf
-          env:
-            SNYK_TOKEN: ${{ inputs.snyk-token }}
           with:
             json: true
+          env:
+            SNYK_TOKEN: ${{ inputs.snyk-token }}
+
           continue-on-error: true
       
         - uses: snyk/actions/gradle@b98d498629f1c368650224d6d212bf7dfa89e4bf
