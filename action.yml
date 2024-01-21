@@ -38,14 +38,14 @@ runs:
             && mv snyk-delta-linux snyk-delta && chmod +x snyk-delta && ./snyk-delta --version \
 
      
-        - uses: actions/checkout@master
+        - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 
         - name: Run Snyk to check for gradle vulnerabilities
-          uses: snyk/actions/gradle@master
+          uses: snyk/actions/gradle@b98d498629f1c368650224d6d212bf7dfa89e4bf
           env:
             SNYK_TOKEN: ${{ inputs.snyk-token }}
           continue-on-error: true
       
-        - uses: snyk/actions/gradle@master
+        - uses: snyk/actions/gradle@b98d498629f1c368650224d6d212bf7dfa89e4bf
           env:
             SNYK_TOKEN: ${{ inputs.snyk-token }}
           with:
@@ -87,7 +87,7 @@ runs:
 
         - name: Add PR Comment with results
           if: github.event_name == 'pull_request' && steps.snyk_filter_new_issues.outputs.exitcode == 0 || steps.snyk_filter_new_issues.outputs.exitcode == 1
-          uses: thollander/actions-comment-pull-request@9d67388b9a94966eb262e68d9a3b368497990b77
+          uses: thollander/actions-comment-pull-request@v2.4.3
           with:
             filePath: new_vulns_summary.txt
             comment_tag: snyk_results
