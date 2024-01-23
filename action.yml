@@ -40,14 +40,16 @@ runs:
      
         - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 
         - name: Run Snyk to check for gradle vulnerabilities
+          if: github.event_name == 'pull_request'
           uses: snyk/actions/gradle@b98d498629f1c368650224d6d212bf7dfa89e4bf
           env:
             SNYK_TOKEN: ${{ inputs.snyk-token }}
           with:
             command: test --all-projects --json-file-output=snyk_kotlin_results.json
           continue-on-error: true
-      
+        
         - uses: snyk/actions/gradle@b98d498629f1c368650224d6d212bf7dfa89e4bf
+          if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', inputs.report-branch)
           env:
             SNYK_TOKEN: ${{ inputs.snyk-token }}
           with:
@@ -88,7 +90,7 @@ runs:
           run: echo "Snyk-delta failed to filter results. Please check the previous stage for details" && exit 1
 
         - name: Add PR Comment with results
-          if: github.event_name == 'pull_request' && steps.snyk_filter_new_issues.outputs.exitcode == 0 || steps.snyk_filter_new_issues.outputs.exitcode == 1
+          if: github.event_name == 'pull_request' && (steps.snyk_filter_new_issues.outputs.exitcode == 0 || steps.snyk_filter_new_issues.outputs.exitcode == 1)
           uses: thollander/actions-comment-pull-request@v2.4.3
           with:
             filePath: new_kotlin_vulns_summary.txt
