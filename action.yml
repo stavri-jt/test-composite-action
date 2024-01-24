@@ -79,7 +79,7 @@ runs:
             /Via/s/^/! /
             }' new_kotlin_vulns_summary.txt
             echo '```' >> new_kotlin_vulns_summary.txt
-            cat new_vulns_summary.txt
+            cat new_kotlin_vulns_summary.txt
           env:
             SNYK_TOKEN: ${{ inputs.snyk-token }}
           continue-on-error: true
