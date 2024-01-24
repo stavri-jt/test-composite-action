@@ -62,6 +62,7 @@ runs:
           if: github.event_name == 'pull_request'
           shell: bash
           run: |
+            ls -la
             set +e
             echo '```diff' > new_kotlin_vulns_summary.txt
             cat snyk_kotlin_results.json | ./snyk-delta >> new_kotlin_vulns_summary.txt 
