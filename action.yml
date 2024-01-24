@@ -63,12 +63,12 @@ runs:
           run: echo "Snyk scan failed. Please check the previous stage for details" && exit 1
 
         - name: Process snyk results
-          id: snyk_filter_new_issues
+          id: snyk_filter_kotlin_new_issues
           if: github.event_name == 'pull_request'
           shell: bash
           run: |
             set +e
-            echo '```diff' > new_vulns_summary.txt
+            echo '```diff' > new_kotlin_vulns_summary.txt
             cat snyk_kotlin_results.json | ./snyk-delta >> new_kotlin_vulns_summary.txt 
             echo "exitcode=$?" >> $GITHUB_OUTPUT
             sed -i -e '/Low/,/^$/ s/^/# /' -e '/Low/,/^$/ !{
@@ -85,12 +85,12 @@ runs:
           continue-on-error: true
 
         - name: Check if snyk-delta succeeded
-          if: github.event_name == 'pull_request' && !inputs.ignore-errors && steps.snyk_filter_new_issues.outputs.exitcode != 0 && steps.snyk_filter_new_issues.outputs.exitcode != 1
+          if: github.event_name == 'pull_request' && !inputs.ignore-errors && steps.snyk_filter_kotlin_new_issues.outputs.exitcode != 0 && steps.snyk_filter_kotlin_new_issues.outputs.exitcode != 1
           shell: bash
           run: echo "Snyk-delta failed to filter results. Please check the previous stage for details" && exit 1
 
         - name: Add PR Comment with results
-          if: github.event_name == 'pull_request' && (steps.snyk_filter_new_issues.outputs.exitcode == 0 || steps.snyk_filter_new_issues.outputs.exitcode == 1)
+          if: github.event_name == 'pull_request' && (steps.snyk_filter_kotlin_new_issues.outputs.exitcode == 0 || steps.snyk_filter_kotlin_new_issues.outputs.exitcode == 1)
           uses: thollander/actions-comment-pull-request@v2.4.3
           with:
             filePath: new_kotlin_vulns_summary.txt
