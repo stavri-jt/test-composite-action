@@ -28,14 +28,9 @@ runs:
             && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
             && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
             && sudo apt update \
-            && sudo apt install gh -y
-        - name: Install snyk-delta
-          shell: bash
-          env:
-            GH_TOKEN: ${{ github.token }}
-          run: |
-            type -p ./snyk-delta >/dev/null || gh release download -R 'snyk-tech-services/snyk-delta' --pattern 'snyk-delta-linux*' && sha256sum -c snyk-delta-linux.sha256 \
-            && mv snyk-delta-linux snyk-delta && chmod +x snyk-delta && ./snyk-delta --version \
+            && sudo apt install gh -y \
+            && gh release download -R 'snyk-tech-services/snyk-delta' --pattern 'snyk-delta-linux*' && sha256sum -c snyk-delta-linux.sha256 \
+            && mv snyk-delta-linux snyk-delta && chmod +x snyk-delta && ./snyk-delta --version
 
      
         - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 
