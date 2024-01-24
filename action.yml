@@ -56,7 +56,8 @@ runs:
           if: github.event_name == 'pull_request' && !inputs.ignore-errors && steps.kotlin_snyk_scan.outputs.exitcode != 0 && steps.kotlin_snyk_scan.outputs.exitcode != 1
           shell: bash
           run: echo "Snyk scan failed. Please check the previous stage for details" && exit 1
-
+        
+        - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         - name: Process snyk results
           id: snyk_filter_kotlin_new_issues
           if: github.event_name == 'pull_request'
