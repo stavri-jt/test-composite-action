@@ -86,7 +86,7 @@ runs:
 
         - name: Add PR Comment with results
           if: github.event_name == 'pull_request' && (steps.snyk_filter_kotlin_new_issues.outputs.exitcode == 0 || steps.snyk_filter_kotlin_new_issues.outputs.exitcode == 1)
-          uses: thollander/actions-comment-pull-request@v9d67388b9a94966eb262e68d9a3b368497990b77
+          uses: thollander/actions-comment-pull-request@9d67388b9a94966eb262e68d9a3b368497990b77
           with:
             filePath: new_kotlin_vulns_summary.txt
             comment_tag: snyk_kotlin_results
