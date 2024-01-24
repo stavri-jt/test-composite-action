@@ -17,7 +17,9 @@ inputs:
     required: true
 runs: 
       using: 'composite'
-      steps:
+      steps:     
+    
+        - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 
         - name: Install curl/gh/snyk-delta/
           shell: bash
           env:
@@ -32,8 +34,6 @@ runs:
             && gh release download -R 'snyk-tech-services/snyk-delta' --pattern 'snyk-delta-linux*' && sha256sum -c snyk-delta-linux.sha256 \
             && mv snyk-delta-linux snyk-delta && chmod +x snyk-delta && ./snyk-delta --version
 
-     
-        - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 
         - name: Run Snyk to check for gradle vulnerabilities
           if: github.event_name == 'pull_request'
           uses: snyk/actions/gradle@b98d498629f1c368650224d6d212bf7dfa89e4bf
