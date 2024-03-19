@@ -33,22 +33,27 @@ runs:
             && sudo apt install gh -y \
             && gh release download -R 'snyk-tech-services/snyk-delta' --pattern 'snyk-delta-linux*' && sha256sum -c snyk-delta-linux.sha256 \
             && mv snyk-delta-linux snyk-delta && chmod +x snyk-delta && ./snyk-delta --version
-
-        - name: Run Snyk to check for gradle vulnerabilities
+        
+        - uses: snyk/actions/setup@master
+        - name: Check for Kotlin vulnerabilities (snyk)
+          id: kotlin_snyk_scan
           if: github.event_name == 'pull_request'
-          uses: snyk/actions/gradle@b98d498629f1c368650224d6d212bf7dfa89e4bf
+          shell: bash
+          run: |
+            set +e
+            snyk test --all-projects --json-file-output=snyk_kotlin_results.json
+            echo "exitcode=$?" >> $GITHUB_OUTPUT
           env:
             SNYK_TOKEN: ${{ inputs.snyk-token }}
-          with:
-            command: test --all-projects --json-file-output=snyk_kotlin_results.json
           continue-on-error: true
         
-        - uses: snyk/actions/gradle@b98d498629f1c368650224d6d212bf7dfa89e4bf
+        - uses: snyk/actions/setup@master
+        - name: Upload Kotlin Vulnerability Scan Results
+          shell: bash
           if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', inputs.report-branch)
+          run: snyk monitor --all-projects
           env:
             SNYK_TOKEN: ${{ inputs.snyk-token }}
-          with:
-            command: monitor
           continue-on-error: ${{ inputs.ignore-errors && true || false}}
       
 
