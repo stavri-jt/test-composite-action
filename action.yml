@@ -46,7 +46,7 @@ runs:
       shell: bash
       run: |
           set +e
-          snyk test -d --all-projects --json-file-output=snyk_kotlin_results.json
+          snyk test -d --all-sub-projects --json-file-output=snyk_kotlin_results.json
           echo "exitcode=$?" >> $GITHUB_OUTPUT
       env:
           SNYK_TOKEN: ${{ inputs.snyk-token }}
