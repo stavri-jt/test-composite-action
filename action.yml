@@ -46,7 +46,9 @@ runs:
       shell: bash
       run: |
           set +e
-          snyk test -d --all-projects --json-file-output=snyk_kotlin_results.json
+          chmod +x gradlew \
+          && chmos + gradle
+          && snyk test -d --all-projects --json-file-output=snyk_kotlin_results.json
           echo "exitcode=$?" >> $GITHUB_OUTPUT
       env:
           SNYK_TOKEN: ${{ inputs.snyk-token }}
@@ -86,8 +88,8 @@ runs:
               echo '```' >> new_kotlin_vulns_summary.txt
               cat new_kotlin_vulns_summary.txt
       env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        continue-on-error: true
+        SNYK_TOKEN: ${{ inputs.snyk-token }}
+      continue-on-error: true
 
     - name: Check if snyk-delta succeeded
       if: github.event_name == 'pull_request' && !inputs.ignore-errors && steps.snyk_filter_kotlin_new_issues.outputs.exitcode != 0 && steps.snyk_filter_kotlin_new_issues.outputs.exitcode != 1
